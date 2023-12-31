@@ -73,11 +73,15 @@ class GenerationContext(
      */
     fun getFriendlyDstName(elem: MappingTreeView.ElementMappingView): String {
         fun getName(elem: MappingTreeView.ElementMappingView, ns: String): String? {
-            val name = elem.getName(ns) ?: return null
+            var name = elem.getName(ns) ?: return null
+
             if (elem is MappingTreeView.ClassMappingView && ns in versionReplaceCandidates) {
-                return name.replaceCraftBukkitNMSVersion(elem.tree.craftBukkitNmsVersion)
+                name = name.replaceCraftBukkitNMSVersion(elem.tree.craftBukkitNmsVersion)
+                name = name.replace("#", "")
+                return name;
             }
 
+            name = name.replace("#", "")
             return name
         }
 
