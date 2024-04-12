@@ -1,7 +1,7 @@
 /*
  * This file is part of takenaka, licensed under the Apache License, Version 2.0 (the "License").
  *
- * Copyright (c) 2023 Matous Kucera
+ * Copyright (c) 2023-2024 Matous Kucera
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -104,8 +104,21 @@ fun <T : MappingTreeView, C : MappingTreeView.ClassMappingView> classAncestryTre
                     }
                 }
 
+                val srcName = klass.srcName
+                val srcNameParts = srcName.split('$')
+                    .filterNotTo(mutableSetOf()) { part -> part.all(Char::isDigit) } // no anonymous parts
+
+                val isInner = srcNameParts.size > 1
                 val classMappings = treeAllowedNamespaces.mapNotNullTo(HashSet(treeAllowedNamespaces.size)) { (ns, id) ->
-                    klass.getDstName(id)?.let { name -> NamespacedMapping(ns, name) }
+                    klass.getDstName(id)?.let { name ->
+                        if (isInner && name != srcName) { // inner and not unobfuscated
+                            if (name.split('$').any(srcNameParts::contains)) {
+                                return@let null // mapping not suitable for history - contains an obfuscated inner name
+                            }
+                        }
+
+                        NamespacedMapping(ns, name)
+                    }
                 }
                 val classMappingsArray = classMappings.toTypedArray() // perf: use array due to marginally better iteration performance
 
