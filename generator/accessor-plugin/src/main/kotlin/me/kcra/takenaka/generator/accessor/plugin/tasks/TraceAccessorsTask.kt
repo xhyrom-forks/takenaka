@@ -1,7 +1,7 @@
 /*
  * This file is part of takenaka, licensed under the Apache License, Version 2.0 (the "License").
  *
- * Copyright (c) 2023 Matous Kucera
+ * Copyright (c) 2023-2024 Matous Kucera
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,29 +55,31 @@ abstract class TraceAccessorsTask : GenerationTask() {
             tracingStream = Splitter(tracingStream, tracingFile0.outputStream())
         }
 
-        val generator = TracingAccessorGenerator(
-            PrintStream(tracingStream),
-            outputWorkspace,
-            AccessorConfiguration(
-                accessors = accessors.get(),
-                basePackage = basePackage.get(),
-                codeLanguage = codeLanguage.get(),
-                accessorType = accessorType.get(),
-                namespaceFriendlinessIndex = namespaceFriendlinessIndex.get(),
-                accessedNamespaces = accessedNamespaces.get(),
-                craftBukkitVersionReplaceCandidates = craftBukkitVersionReplaceCandidates.get()
+        tracingStream.use { out ->
+            val generator = TracingAccessorGenerator(
+                PrintStream(out),
+                outputWorkspace,
+                AccessorConfiguration(
+                    accessors = accessors.get(),
+                    codeLanguage = codeLanguage.get(),
+                    accessorType = accessorType.get(),
+                    namespaceFriendlinessIndex = namespaceFriendlinessIndex.get(),
+                    accessedNamespaces = namespaces.get(),
+                    craftBukkitVersionReplaceCandidates = craftBukkitVersionReplaceCandidates.get(),
+                    namingStrategy = namingStrategy.get(),
+                    runtimePackage = runtimePackage.get()
+                )
             )
-        )
 
-        runBlocking {
-            generator.generate(
-                mappingProvider.get(),
-                SimpleAncestryProvider(historyIndexNamespace.get(), historyNamespaces.get())
-            )
+            runBlocking {
+                generator.generate(
+                    mappingProvider.get(),
+                    SimpleAncestryProvider(historyIndexNamespace.get(), historyNamespaces.get())
+                )
+            }
+
+            tracingFile0?.let { println("Report saved to ${it.absolutePath}.") }
         }
-
-        tracingStream.close()
-        tracingFile0?.let { println("Report saved to ${it.absolutePath}.") }
     }
 
     /**

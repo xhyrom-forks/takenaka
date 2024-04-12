@@ -1,7 +1,7 @@
 /*
  * This file is part of takenaka, licensed under the Apache License, Version 2.0 (the "License").
  *
- * Copyright (c) 2023 Matous Kucera
+ * Copyright (c) 2023-2024 Matous Kucera
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,8 +28,10 @@ import me.kcra.takenaka.core.mapping.resolve.impl.craftBukkitNmsVersion
 import me.kcra.takenaka.core.mapping.resolve.impl.modifiers
 import me.kcra.takenaka.core.mapping.util.dstNamespaceIds
 import me.kcra.takenaka.generator.accessor.AccessorGenerator
+import me.kcra.takenaka.generator.accessor.GeneratedClassType
 import me.kcra.takenaka.generator.accessor.context.GenerationContext
 import me.kcra.takenaka.generator.accessor.model.*
+import me.kcra.takenaka.generator.accessor.naming.NamingStrategy
 import me.kcra.takenaka.generator.accessor.util.globAsRegex
 import me.kcra.takenaka.generator.accessor.util.isGlob
 import me.kcra.takenaka.generator.common.provider.AncestryProvider
@@ -63,14 +65,25 @@ typealias ResolvedMethodPair = Pair<MethodAccessor, MethodAncestryNode>
  * @author Matouš Kučera
  */
 abstract class AbstractGenerationContext(
-    override val generator: AccessorGenerator,
+    final override val generator: AccessorGenerator,
     val ancestryProvider: AncestryProvider,
     contextScope: CoroutineScope
 ) : GenerationContext, CoroutineScope by contextScope {
     /**
-     * Names of classes that were generated.
+     * Names of accessor models that had accessor classes generated.
      */
-    private val generatedClasses = Collections.synchronizedSet(sortedSetOf<String>())
+    private val generatedClasses = Collections.synchronizedSet(mutableSetOf<String>())
+
+    /**
+     * The generator's naming strategy.
+     */
+    protected val namingStrategy: NamingStrategy /*by generator.config::namingStrategy - KT-53799, can't use delegation */
+        get() = generator.config.namingStrategy
+
+    /**
+     * The source code types.
+     */
+    protected val types = SourceTypes(generator.config.runtimePackage)
 
     /**
      * The generation timestamp of this context's output.
@@ -173,13 +186,14 @@ abstract class AbstractGenerationContext(
      * that have been generated in this context.
      */
     override fun generateLookupClass() {
-        generateLookupClass(generatedClasses.toList())
+        // try reconstructing necessary information for name generation
+        generateLookupClass(generatedClasses.map { cl -> namingStrategy.klass(ClassAccessor(cl), GeneratedClassType.MAPPING) })
     }
 
     /**
      * Generates a mapping lookup class from class names.
      *
-     * @param names internal names of classes declared in accessor models
+     * @param names fully qualified names of generated mapping classes
      */
     protected open fun generateLookupClass(names: List<String>) {
     }

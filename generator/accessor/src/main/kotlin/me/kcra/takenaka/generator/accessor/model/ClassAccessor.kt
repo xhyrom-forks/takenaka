@@ -1,7 +1,7 @@
 /*
  * This file is part of takenaka, licensed under the Apache License, Version 2.0 (the "License").
  *
- * Copyright (c) 2023 Matous Kucera
+ * Copyright (c) 2023-2024 Matous Kucera
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,16 +32,25 @@ import java.io.Serializable
  */
 data class ClassAccessor(
     val name: String,
-    val fields: List<FieldAccessor>,
-    val constructors: List<ConstructorAccessor>,
-    val methods: List<MethodAccessor>,
-    val requiredTypes: RequiredMemberTypes
+    val fields: List<FieldAccessor> = emptyList(),
+    val constructors: List<ConstructorAccessor> = emptyList(),
+    val methods: List<MethodAccessor> = emptyList(),
+    val requiredTypes: RequiredMemberTypes = 0
 ) : Serializable {
     /**
      * Internalized variant of [name].
      */
     @Transient
     val internalName = name.toInternalName()
+
+    /**
+     * Creates a copy of this model, but with a different name.
+     *
+     * @param name the new model name
+     */
+    fun withName(name: String): ClassAccessor {
+        return ClassAccessor(name, fields, constructors, methods, requiredTypes)
+    }
 
     companion object {
         private const val serialVersionUID = 1L

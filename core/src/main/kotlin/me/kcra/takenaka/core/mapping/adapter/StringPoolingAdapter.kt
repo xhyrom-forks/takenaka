@@ -1,7 +1,7 @@
 /*
  * This file is part of takenaka, licensed under the Apache License, Version 2.0 (the "License").
  *
- * Copyright (c) 2023 Matous Kucera
+ * Copyright (c) 2023-2024 Matous Kucera
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,15 +21,13 @@ import net.fabricmc.mappingio.MappedElementKind
 import net.fabricmc.mappingio.MappingVisitor
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor
 
-// doing this is really weird, but it saves a lot of memory
-
 /**
- * Interns (pools) element name and descriptor strings ([String.intern]).
+ * Pools element name and descriptor strings (using [String.intern]).
  *
  * @param next the visitor to delegate to
  * @author Matouš Kučera
  */
-class StringInterningAdapter(next: MappingVisitor) : ForwardingMappingVisitor(next) {
+class StringPoolingAdapter(next: MappingVisitor) : ForwardingMappingVisitor(next) {
     override fun visitClass(srcName: String?): Boolean {
         return super.visitClass(srcName?.intern())
     }
