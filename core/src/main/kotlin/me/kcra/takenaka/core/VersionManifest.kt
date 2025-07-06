@@ -349,6 +349,7 @@ inline fun VersionManifest.range(
  *
  * @property refs the Git ref hashes (BuildData, Bukkit, CraftBukkit, Spigot)
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class SpigotVersionManifest(
     val name: String,
     val description: String,
