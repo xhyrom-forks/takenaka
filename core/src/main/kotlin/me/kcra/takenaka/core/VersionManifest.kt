@@ -361,6 +361,7 @@ data class SpigotVersionManifest(
 /**
  * Spigot's BuildData info.json attributes.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class SpigotVersionAttributes(
     val minecraftVersion: String,
     val spigotVersion: String?,
